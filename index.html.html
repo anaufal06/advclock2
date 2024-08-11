@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Clock Web</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap");
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #2a2b3d;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            transition: background-color 0.3s;
+            flex-direction: column;
+        }
+        .navbar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .navbar button {
+            background-color: #33374d;
+            color: #61dafb;
+            border: 2px;
+            padding: 15px 30px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s, color 0.3s;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+        }
+        .navbar button:hover {
+            background-color: #4b4c63;
+            color: #f0f0f0;
+        }
+        .clock-container, .stopwatch-container, .timer-container {
+            background-color: #33374d;
+            border-radius: 20px;
+            padding: 8.5px 40px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            color: white;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .time {
+            font-size: 6em;
+            color: #61dafb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .time .hours-minutes {
+            margin-right: 10px;
+        }
+        .am-pm-seconds {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .am, .seconds {
+            font-size: 0.25em;
+            color: #5ef7a3;
+        }
+        .am {
+            margin-bottom: 5px;
+        }
+        .date {
+            font-size: 1.5em;
+            color: #b897f7;
+            margin-top: 10px;
+        }
+        .settings {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            cursor: pointer;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .settings-menu {
+            position: absolute;
+            top: 40px;
+            right: 10px;
+            background-color: #444;
+            border-radius: 10px;
+            padding: 10px 20px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .settings-menu.active {
+            display: block;
+        }
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: #ccc;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle::before {
+            content: "";
+            position: absolute;
+            width: 23px;
+            height: 23px;
+            background: #fff;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            transition: transform 0.3s;
+        }
+        .toggle.active {
+            background: #61dafb;
+        }
+        .toggle.active::before {
+            transform: translateX(25px);
+        }
+        .dark-mode .clock-container,
+        .dark-mode .settings-menu,
+        .dark-mode .stopwatch-container, 
+        .dark-mode .timer-container,
+        .dark-mode .navbar button
+        {
+            background-color: #33374d;
+            color: white;
+        }
+        .light-mode {
+            background-color: #f0f0f0;
+            color: black;
+        }
+        .light-mode .clock-container,
+        .light-mode .settings-menu , 
+        .light-mode .stopwatch-container, 
+        .light-mode .timer-container,
+        .light-mode .navbar button
+        {
+            background-color: #fff;
+            color: black;
+        }
+        .light-mode .toggle.active {
+            background: #000;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .controls button {
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #4b4c63;
+            color: #f0f0f0;
+        }
+        .controls input {
+            padding: 10px;
+            width: 100px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin: 0 5px;
+        }
+        .controls input[type="number"] {
+            font-size: 1em;
+        }
+        .stopwatch-container, .timer-container {
+            display: none;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="navbar">
+        <button id="clockBtn">Clock</button>
+        <button id="stopwatchBtn">Stopwatch</button>
+        <button id="timerBtn">Timer</button>
+    </div>
+
+    <div class="clock-container">
+        <div class="settings">⋮</div>
+        <div class="settings-menu" id="settingsMenu">
+            <div class="settings-item">
+                <span>24-hour format</span>
+                <div class="toggle" id="toggleFormat"></div>
+            </div>
+            <div class="settings-item">
+                <span>Dark/Light mode</span>
+                <div class="toggle" id="toggleMode"></div>
+            </div>
+            <div class="settings-item">
+                <span>Simplicity</span>
+                <div class="toggle" id="toggleSimplicity"></div>
+            </div>
+        </div>
+        <div class="time">
+            <span class="hours-minutes" id="time">00:00</span>
+            <div class="am-pm-seconds">
+                <span class="am" id="am">AM</span>
+                <span class="seconds" id="seconds">00</span>
+            </div>
+        </div>
+        <div class="date" id="date">Aug, Monday 5 2024</div>
+    </div>
+
+    <div class="stopwatch-container">
+        <div class="time" id="stopwatchTime">00:00:00</div>
+        <div class="controls">
+            <button id="startStopwatch">Start</button>
+            <button id="stopStopwatch">Stop</button>
+            <button id="resetStopwatch">Reset</button>
+        </div>
+    </div>
+
+    <div class="timer-container">
+        <div class="time" id="timerTime">00:00:00</div>
+        <div class="controls">
+            <input type="number" id="hoursInput" placeholder="Hours">
+            <input type="number" id="minutesInput" placeholder="Minutes">
+            <input type="number" id="secondsInput" placeholder="Seconds">
+        </div>
+        <div class="controls">
+            <button id="startTimer">Start</button>
+            <button id="stopTimer">Stop</button>
+            <button id="resetTimer">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const timeElement = document.getElementById('time');
+        const amElement = document.getElementById('am');
+        const secondsElement = document.getElementById('seconds');
+        const dateElement = document.getElementById('date');
+        const toggleFormatElement = document.getElementById('toggleFormat');
+        const toggleModeElement = document.getElementById('toggleMode');
+        const toggleSimplicityElement = document.getElementById('toggleSimplicity');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const settingsButton = document.querySelector('.settings');
+
+        const clockContainer = document.querySelector('.clock-container');
+        const stopwatchContainer = document.querySelector('.stopwatch-container');
+        const timerContainer = document.querySelector('.timer-container');
+
+        let is24HourFormat = false;
+        let isDarkMode = true;
+        let isSimplified = false;
+
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            if (is24HourFormat) {
+                timeElement.textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
+                amElement.textContent = ampm;
+                amElement.style.display = 'inline';
+            } else {
+                hours = hours % 12 || 12;
+                timeElement.textContent = `${String(hours).padStart(2, '0')}:${minutes}`;
+                amElement.textContent = ampm;
+                amElement.style.display = 'block';
+            }
+
+            secondsElement.style.display = isSimplified ? 'none' : 'inline';
+            secondsElement.textContent = seconds;
+
+            if (isSimplified) {
+                dateElement.textContent = now.toLocaleDateString('en-US');
+            } else {
+                dateElement.textContent = now.toLocaleDateString('en-US', { month: 'short', weekday: 'long', day: 'numeric', year: 'numeric' });
+            }
+        }
+
+        function toggleFormat() {
+            is24HourFormat = !is24HourFormat;
+            toggleFormatElement.classList.toggle('active');
+            updateTime();
+        }
+
+        function toggleMode() {
+            isDarkMode = !isDarkMode;
+            document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
+            toggleModeElement.classList.toggle('active');
+        }
+
+        function toggleSimplicity() {
+            isSimplified = !isSimplified;
+            toggleSimplicityElement.classList.toggle('active');
+            updateTime();
+        }
+
+        function toggleSettingsMenu() {
+            settingsMenu.classList.toggle('active');
+        }
+
+        function clickOutsideSettingsMenu(event) {
+            if (!settingsMenu.contains(event.target) && !settingsButton.contains(event.target)) {
+                settingsMenu.classList.remove('active');
+            }
+        }
+
+        toggleFormatElement.addEventListener('click', toggleFormat);
+        toggleModeElement.addEventListener('click', toggleMode);
+        toggleSimplicityElement.addEventListener('click', toggleSimplicity);
+        settingsButton.addEventListener('click', toggleSettingsMenu);
+        document.addEventListener('click', clickOutsideSettingsMenu);
+
+        setInterval(updateTime, 1000);
+        updateTime(); 
+
+        let stopwatchTime = 0;
+        let stopwatchInterval = null;
+
+        function updateStopwatch() {
+            const hours = String(Math.floor(stopwatchTime / 3600000)).padStart(2, '0');
+            const minutes = String(Math.floor((stopwatchTime % 3600000) / 60000)).padStart(2, '0');
+            const seconds = String(Math.floor((stopwatchTime % 60000) / 1000)).padStart(2, '0');
+            document.getElementById('stopwatchTime').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        document.getElementById('startStopwatch').addEventListener('click', () => {
+            if (!stopwatchInterval) {
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime += 1000;
+                    updateStopwatch();
+                }, 1000);
+            }
+        });
+
+        document.getElementById('stopStopwatch').addEventListener('click', () => {
+            if (stopwatchInterval) {
+                clearInterval(stopwatchInterval);
+                stopwatchInterval = null;
+            }
+        });
+
+        document.getElementById('resetStopwatch').addEventListener('click', () => {
+            clearInterval(stopwatchInterval);
+            stopwatchInterval = null;
+            stopwatchTime = 0;
+            updateStopwatch();
+        });
+
+        let timerEndTime = null;
+        let timerInterval = null;
+        let remainingTime = 0;
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const timeLeft = Math.max(timerEndTime - now, 0);
+            const hours = String(Math.floor(timeLeft / 3600000)).padStart(2, '0');
+            const minutes = String(Math.floor((timeLeft % 3600000) / 60000)).padStart(2, '0');
+            const seconds = String(Math.floor((timeLeft % 60000) / 1000)).padStart(2, '0');
+            document.getElementById('timerTime').textContent = `${hours}:${minutes}:${seconds}`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                remainingTime = 0;
+            }
+        }
+
+        document.getElementById('startTimer').addEventListener('click', () => {
+            const hours = parseInt(document.getElementById('hoursInput').value) || 0;
+            const minutes = parseInt(document.getElementById('minutesInput').value) || 0;
+            const seconds = parseInt(document.getElementById('secondsInput').value) || 0;
+
+            const now = new Date();
+            timerEndTime = now.getTime() + (remainingTime || (hours * 3600000) + (minutes * 60000) + (seconds * 1000));
+
+            if (!timerInterval) {
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
+
+        document.getElementById('stopTimer').addEventListener('click', () => {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                remainingTime = timerEndTime - new Date().getTime();
+            }
+        });
+
+        document.getElementById('resetTimer').addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            remainingTime = 0;
+            document.getElementById('timerTime').textContent = '00:00:00';
+        });
+
+        document.getElementById('clockBtn').addEventListener('click', () => {
+            clockContainer.style.display = 'block';
+            stopwatchContainer.style.display = 'none';
+            timerContainer.style.display = 'none';
+        });
+
+        document.getElementById('stopwatchBtn').addEventListener('click', () => {
+            clockContainer.style.display = 'none';
+            stopwatchContainer.style.display = 'block';
+            timerContainer.style.display = 'none';
+        });
+
+        document.getElementById('timerBtn').addEventListener('click', () => {
+            clockContainer.style.display = 'none';
+            stopwatchContainer.style.display = 'none';
+            timerContainer.style.display = 'block';
+        });
+
+        clockContainer.style.display = 'block';
+    </script>
+</body>
+</html>
